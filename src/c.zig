@@ -1,1 +1,1 @@
-pub usingnamespace @cImport(@cInclude("lmdb.h"));
+pub const c = @cImport(@cInclude("lmdb.h"));

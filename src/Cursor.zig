@@ -2,7 +2,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const hex = std.fmt.fmtSliceHexLower;
 
-const c = @import("c.zig");
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const throw = errors.throw;
 

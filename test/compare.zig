@@ -1,10 +1,9 @@
 const std = @import("std");
-const hex = std.fmt.fmtSliceHexLower;
 
 const lmdb = @import("lmdb");
 
 const Options = struct {
-    log: ?std.fs.File.Writer = null,
+    log: ?*std.io.Writer = null,
 };
 
 pub fn compareEnvironments(env_a: lmdb.Environment, env_b: lmdb.Environment, dbs: ?[][*:0]const u8, options: Options) !usize {
@@ -31,7 +30,8 @@ pub fn compareEnvironments(env_a: lmdb.Environment, env_b: lmdb.Environment, dbs
 }
 
 pub fn compareDatabases(db_a: lmdb.Database, db_b: lmdb.Database, options: Options) !usize {
-    if (options.log) |log| try log.print("{s:-<80}\n", .{"START DIFF "});
+    if (options.log) |log|
+        try log.print("{s:-<80}\n", .{"START DIFF "});
 
     var differences: usize = 0;
 
@@ -52,17 +52,14 @@ pub fn compareDatabases(db_a: lmdb.Database, db_b: lmdb.Database, options: Optio
                     .lt => {
                         differences += 1;
                         if (options.log) |log|
-                            try log.print("{s}\n- a: {s}\n- b: null\n", .{ hex(key_a_bytes), hex(value_a) });
+                            try log.print("{x}\n- a: {x}\n- b: null\n", .{ key_a_bytes, value_a });
 
                         key_a = try cursor_a.goToNext();
                     },
                     .gt => {
                         differences += 1;
                         if (options.log) |log|
-                            try log.print("{s}\n- a: null\n- b: {s}\n", .{
-                                hex(key_b_bytes),
-                                hex(value_b),
-                            });
+                            try log.print("{x}\n- a: null\n- b: {x}\n", .{ key_b_bytes, value_b });
 
                         key_b = try cursor_b.goToNext();
                     },
@@ -70,7 +67,7 @@ pub fn compareDatabases(db_a: lmdb.Database, db_b: lmdb.Database, options: Optio
                         if (!std.mem.eql(u8, value_a, value_b)) {
                             differences += 1;
                             if (options.log) |log|
-                                try log.print("{s}\n- a: {s}\n- b: {s}\n", .{ hex(key_a_bytes), hex(value_a), hex(value_b) });
+                                try log.print("{x}\n- a: {x}\n- b: {x}\n", .{ key_a_bytes, value_a, value_b });
                         }
 
                         key_a = try cursor_a.goToNext();
@@ -80,7 +77,7 @@ pub fn compareDatabases(db_a: lmdb.Database, db_b: lmdb.Database, options: Optio
             } else {
                 differences += 1;
                 if (options.log) |log|
-                    try log.print("{s}\n- a: {s}\n- b: null\n", .{ hex(key_a_bytes), hex(value_a) });
+                    try log.print("{x}\n- a: {x}\n- b: null\n", .{ key_a_bytes, value_a });
 
                 key_a = try cursor_a.goToNext();
             }
@@ -89,7 +86,7 @@ pub fn compareDatabases(db_a: lmdb.Database, db_b: lmdb.Database, options: Optio
                 const value_b = try cursor_b.getCurrentValue();
                 differences += 1;
                 if (options.log) |log|
-                    try log.print("{s}\n- a: null\n- b: {s}\n", .{ hex(bytes_b), hex(value_b) });
+                    try log.print("{x}\n- a: null\n- b: {x}\n", .{ bytes_b, value_b });
 
                 key_b = try cursor_b.goToNext();
             } else {
@@ -98,7 +95,8 @@ pub fn compareDatabases(db_a: lmdb.Database, db_b: lmdb.Database, options: Optio
         }
     }
 
-    if (options.log) |log| try log.print("{s:-<80}\n", .{"END DIFF "});
+    if (options.log) |log|
+        try log.print("{s:-<80}\n", .{"END DIFF "});
 
     return differences;
 }
