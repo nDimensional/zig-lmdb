@@ -12,7 +12,9 @@ var random = prng.random();
 const ms: f64 = 1_000_000.0;
 
 pub fn main() !void {
-    const log = std.io.getStdOut().writer();
+    var stdout_buffer: [4096]u8 = undefined;
+    var stdout_writer = std.fs.File.stdout().writer(&stdout_buffer);
+    const log = &stdout_writer.interface;
 
     _ = try log.write("## Benchmarks\n\n");
     try Context.exec("1k entries", 1_000, log, .{});
@@ -20,6 +22,7 @@ pub fn main() !void {
     try Context.exec("50k entries", 50_000, log, .{});
     _ = try log.write("\n");
     try Context.exec("1m entries", 1_000_000, log, .{ .map_size = 2 * 1024 * 1024 * 1024 });
+    try log.flush();
 }
 
 var path_buffer: [std.fs.max_path_bytes]u8 = undefined;
@@ -34,9 +37,9 @@ const Context = struct {
     env: lmdb.Environment,
     name: []const u8,
     size: u32,
-    log: std.fs.File.Writer,
+    log: *std.Io.Writer,
 
-    pub fn exec(name: []const u8, size: u32, log: std.fs.File.Writer, options: lmdb.Environment.Options) !void {
+    pub fn exec(name: []const u8, size: u32, log: *std.Io.Writer, options: lmdb.Environment.Options) !void {
         var tmp = std.testing.tmpDir(.{});
         defer tmp.cleanup();
 

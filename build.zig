@@ -4,7 +4,11 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
     const target = b.standardTargetOptions(.{});
 
-    const lmdb = b.addModule("lmdb", .{ .root_source_file = b.path("src/lib.zig") });
+    const lmdb = b.addModule("lmdb", .{
+        .root_source_file = b.path("src/lib.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const lmdb_dep = b.dependency("lmdb", .{});
 
     lmdb.addIncludePath(lmdb_dep.path("libraries/liblmdb"));
@@ -16,9 +20,11 @@ pub fn build(b: *std.Build) void {
 
     // Tests
     const tests = b.addTest(.{
-        .root_source_file = b.path("test/main.zig"),
-        .optimize = optimize,
-        .target = target,
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("test/main.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
     });
     tests.root_module.addImport("lmdb", lmdb);
     const test_runner = b.addRunArtifact(tests);
@@ -28,9 +34,11 @@ pub fn build(b: *std.Build) void {
     // Benchmarks
     const bench = b.addExecutable(.{
         .name = "lmdb-benchmark",
-        .root_source_file = b.path("benchmarks/main.zig"),
-        .optimize = optimize,
-        .target = target,
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("benchmarks/main.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
     });
 
     bench.root_module.addImport("lmdb", lmdb);
@@ -41,9 +49,11 @@ pub fn build(b: *std.Build) void {
     // Run example
     const exe = b.addExecutable(.{
         .name = "lmdb-example",
-        .root_source_file = b.path("example.zig"),
-        .optimize = optimize,
-        .target = target,
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("example.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
     });
 
     exe.root_module.addImport("lmdb", lmdb);

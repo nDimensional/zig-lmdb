@@ -1,10 +1,26 @@
 const std = @import("std");
-const hex = std.fmt.fmtSliceHexLower;
+
+const HexFmt = struct {
+    bytes: []const u8,
+
+    pub fn format(
+        self: HexFmt,
+        writer: *std.Io.Writer,
+    ) std.Io.Writer.Error!void {
+        for (self.bytes) |byte| {
+            try writer.print("{x:0>2}", .{byte});
+        }
+    }
+};
+
+fn hex(bytes: []const u8) HexFmt {
+    return .{ .bytes = bytes };
+}
 
 const lmdb = @import("lmdb");
 
 const Options = struct {
-    log: ?std.fs.File.Writer = null,
+    log: ?*std.Io.Writer = null,
 };
 
 pub fn compareEnvironments(env_a: lmdb.Environment, env_b: lmdb.Environment, dbs: ?[][*:0]const u8, options: Options) !usize {
@@ -52,14 +68,14 @@ pub fn compareDatabases(db_a: lmdb.Database, db_b: lmdb.Database, options: Optio
                     .lt => {
                         differences += 1;
                         if (options.log) |log|
-                            try log.print("{s}\n- a: {s}\n- b: null\n", .{ hex(key_a_bytes), hex(value_a) });
+                            try log.print("{f}\n- a: {f}\n- b: null\n", .{ hex(key_a_bytes), hex(value_a) });
 
                         key_a = try cursor_a.goToNext();
                     },
                     .gt => {
                         differences += 1;
                         if (options.log) |log|
-                            try log.print("{s}\n- a: null\n- b: {s}\n", .{
+                            try log.print("{f}\n- a: null\n- b: {f}\n", .{
                                 hex(key_b_bytes),
                                 hex(value_b),
                             });
@@ -70,7 +86,7 @@ pub fn compareDatabases(db_a: lmdb.Database, db_b: lmdb.Database, options: Optio
                         if (!std.mem.eql(u8, value_a, value_b)) {
                             differences += 1;
                             if (options.log) |log|
-                                try log.print("{s}\n- a: {s}\n- b: {s}\n", .{ hex(key_a_bytes), hex(value_a), hex(value_b) });
+                                try log.print("{f}\n- a: {f}\n- b: {f}\n", .{ hex(key_a_bytes), hex(value_a), hex(value_b) });
                         }
 
                         key_a = try cursor_a.goToNext();
@@ -80,7 +96,7 @@ pub fn compareDatabases(db_a: lmdb.Database, db_b: lmdb.Database, options: Optio
             } else {
                 differences += 1;
                 if (options.log) |log|
-                    try log.print("{s}\n- a: {s}\n- b: null\n", .{ hex(key_a_bytes), hex(value_a) });
+                    try log.print("{f}\n- a: {f}\n- b: null\n", .{ hex(key_a_bytes), hex(value_a) });
 
                 key_a = try cursor_a.goToNext();
             }
@@ -89,7 +105,7 @@ pub fn compareDatabases(db_a: lmdb.Database, db_b: lmdb.Database, options: Optio
                 const value_b = try cursor_b.getCurrentValue();
                 differences += 1;
                 if (options.log) |log|
-                    try log.print("{s}\n- a: null\n- b: {s}\n", .{ hex(bytes_b), hex(value_b) });
+                    try log.print("{f}\n- a: null\n- b: {f}\n", .{ hex(bytes_b), hex(value_b) });
 
                 key_b = try cursor_b.goToNext();
             } else {
