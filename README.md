@@ -2,7 +2,7 @@
 
 Zig bindings for LMDB.
 
-Built and tested with Zig version `0.14.1`.
+Built and tested with Zig version `0.15.1`.
 
 ## Table of Contents
 
@@ -20,7 +20,7 @@ Built and tested with Zig version `0.14.1`.
 
 ```
 zig fetch --save=lmdb \
-  https://github.com/canvasxyz/zig-lmdb/archive/refs/tags/v0.2.1.tar.gz
+  https://github.com/nDimensional/zig-lmdb/archive/refs/tags/v0.3.0.tar.gz
 ```
 
 ## Usage
