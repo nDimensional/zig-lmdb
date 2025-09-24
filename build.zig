@@ -39,6 +39,7 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
+    bench.linkLibC();
     bench.root_module.addImport("lmdb", lmdb);
 
     const bench_runner = b.addRunArtifact(bench);
@@ -54,6 +55,7 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
+    exe.linkLibC();
     exe.root_module.addImport("lmdb", lmdb);
 
     const exe_runner = b.addRunArtifact(exe);
