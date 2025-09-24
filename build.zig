@@ -23,6 +23,7 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
+    tests.linkLibC();
     tests.root_module.addImport("lmdb", lmdb);
     const test_runner = b.addRunArtifact(tests);
 
