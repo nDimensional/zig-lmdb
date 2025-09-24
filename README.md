@@ -20,7 +20,7 @@ Built and tested with Zig version `0.15.1`.
 
 ```
 zig fetch --save=lmdb \
-  https://github.com/nDimensional/zig-lmdb/archive/refs/tags/v0.3.0.tar.gz
+  https://github.com/nDimensional/zig-lmdb/archive/refs/tags/v0.3.1.tar.gz
 ```
 
 ## Usage
