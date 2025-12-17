@@ -40,7 +40,7 @@ const Context = struct {
     env: lmdb.Environment,
     name: []const u8,
     size: u32,
-    log: *std.io.Writer,
+    log: *std.Io.Writer,
 
     pub fn exec(name: []const u8, size: u32, log: *std.io.Writer, options: lmdb.Environment.Options) !void {
         var tmp = std.testing.tmpDir(.{});
