@@ -3,7 +3,7 @@ const std = @import("std");
 const lmdb = @import("lmdb");
 
 const Options = struct {
-    log: ?*std.io.Writer = null,
+    log: ?*std.Io.Writer = null,
 };
 
 pub fn compareEnvironments(env_a: lmdb.Environment, env_b: lmdb.Environment, dbs: ?[][*:0]const u8, options: Options) !usize {
