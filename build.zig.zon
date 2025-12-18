@@ -2,7 +2,7 @@
     .name = .lmdb,
     .fingerprint = 0xb2966103a0733ae9,
     .paths = .{ "src", "build.zig", "build.zig.zon" },
-    .version = "0.3.1",
+    .version = "0.3.2",
     .minimum_zig_version = "0.15.1",
     .dependencies = .{
         .lmdb = .{
