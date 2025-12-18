@@ -212,6 +212,54 @@ test "Environment.stat" {
     }
 }
 
+test "Database.stat()" {
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    const env = try open(tmp.dir, .{ .max_dbs = 8 });
+    defer env.deinit();
+
+    {
+        const txn = try env.transaction(.{ .mode = .ReadWrite });
+        errdefer txn.abort();
+
+        const a = try txn.database("a", .{ .create = true });
+
+        try a.set("a", "foo");
+        try a.set("b", "bar");
+        try a.set("c", "baz");
+        try a.set("a", "aaa");
+        try txn.commit();
+    }
+
+    {
+        const txn = try env.transaction(.{ .mode = .ReadWrite });
+        errdefer txn.abort();
+
+        const b = try txn.database("b", .{ .create = true });
+
+        try b.set("a", "aaa");
+        try txn.commit();
+    }
+
+    {
+        const stat = try env.stat();
+        try expectEqual(@as(usize, 2), stat.entries);
+
+        const txn = try env.transaction(.{ .mode = .ReadOnly });
+        errdefer txn.abort();
+
+        const a = try txn.database("a", .{});
+        const b = try txn.database("b", .{});
+
+        const a_stat = try a.stat();
+        const b_stat = try b.stat();
+
+        try expectEqual(3, a_stat.entries);
+        try expectEqual(1, b_stat.entries);
+    }
+}
+
 test "Cursor.deleteCurrentKey()" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();

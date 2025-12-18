@@ -97,8 +97,8 @@ pub const Environment = struct {
     pub fn transaction(self: Environment, options: Transaction.Options) !Transaction
 
     pub fn sync(self: Environment) !void
-    pub fn stat(self: Environment) !Stat
     pub fn info(self: Environment) !Info
+    pub fn stat(self: Environment) !Stat
 
     pub fn resize(self: Environment, size: usize) !void // mdb_env_set_mapsize
 };
@@ -136,15 +136,6 @@ pub const Database = struct {
         reverse_key: bool = false,
         integer_key: bool = false,
         create: bool = false,
-    };
-
-    pub const Stat = struct {
-        psize: u32,
-        depth: u32,
-        branch_pages: usize,
-        leaf_pages: usize,
-        overflow_pages: usize,
-        entries: usize,
     };
 
     pub fn open(txn: Transaction, name: ?[*:0]const u8, options: Options) !Database
@@ -186,6 +177,19 @@ pub const Cursor = struct {
 ```
 
 > ⚠️ Always close cursors **before** committing or aborting the transaction.
+
+### `Stat`
+
+```zig
+pub const Stat = struct {
+    psize: u32,
+    depth: u32,
+    branch_pages: usize,
+    leaf_pages: usize,
+    overflow_pages: usize,
+    entries: usize,
+};
+```
 
 ## Benchmarks
 
