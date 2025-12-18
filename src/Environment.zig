@@ -4,6 +4,7 @@ const errors = @import("errors.zig");
 const throw = errors.throw;
 
 const Transaction = @import("Transaction.zig");
+const Stat = @import("Stat.zig");
 
 const Environment = @This();
 
@@ -22,15 +23,6 @@ pub const Info = struct {
     map_size: usize,
     max_readers: u32,
     num_readers: u32,
-};
-
-pub const Stat = struct {
-    psize: u32,
-    depth: u32,
-    branch_pages: usize,
-    leaf_pages: usize,
-    overflow_pages: usize,
-    entries: usize,
 };
 
 ptr: ?*c.MDB_env = null,

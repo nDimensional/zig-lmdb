@@ -4,6 +4,7 @@ const throw = errors.throw;
 
 const Transaction = @import("Transaction.zig");
 const Cursor = @import("Cursor.zig");
+const Stat = @import("Stat.zig");
 
 const Database = @This();
 
@@ -13,15 +14,6 @@ pub const Options = struct {
     reverse_key: bool = false,
     integer_key: bool = false,
     create: bool = false,
-};
-
-pub const Stat = struct {
-    psize: u32,
-    depth: u32,
-    branch_pages: usize,
-    leaf_pages: usize,
-    overflow_pages: usize,
-    entries: usize,
 };
 
 txn: Transaction,
