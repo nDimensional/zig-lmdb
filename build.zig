@@ -20,10 +20,10 @@ pub fn build(b: *std.Build) void {
             .root_source_file = b.path("test/main.zig"),
             .optimize = optimize,
             .target = target,
+            .link_libc = true,
         }),
     });
 
-    tests.linkLibC();
     tests.root_module.addImport("lmdb", lmdb);
     const test_runner = b.addRunArtifact(tests);
 
@@ -36,10 +36,10 @@ pub fn build(b: *std.Build) void {
             .root_source_file = b.path("benchmarks/main.zig"),
             .optimize = optimize,
             .target = target,
+            .link_libc = true,
         }),
     });
 
-    bench.linkLibC();
     bench.root_module.addImport("lmdb", lmdb);
 
     const bench_runner = b.addRunArtifact(bench);
@@ -52,10 +52,10 @@ pub fn build(b: *std.Build) void {
             .root_source_file = b.path("example.zig"),
             .optimize = optimize,
             .target = target,
+            .link_libc = true,
         }),
     });
 
-    exe.linkLibC();
     exe.root_module.addImport("lmdb", lmdb);
 
     const exe_runner = b.addRunArtifact(exe);
