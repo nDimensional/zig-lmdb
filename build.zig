@@ -17,6 +17,17 @@ pub fn build(b: *std.Build) void {
         .files = &.{ "mdb.c", "midl.c" },
     });
 
+    // Translate lmdb.h via the build system rather than the deprecated
+    // `@cImport` builtin. The resulting module is imported as `c` and shared
+    // by every src/*.zig file.
+    const translate_c = b.addTranslateC(.{
+        .root_source_file = lmdb_dep.path("libraries/liblmdb/lmdb.h"),
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+    });
+    lmdb.addImport("c", translate_c.createModule());
+
     // Tests
     const tests = b.addTest(.{
         .root_module = b.createModule(.{
