@@ -16,11 +16,11 @@ Zig bindings for LMDB.
 
 ## Installation
 
-Built and tested with Zig version `0.16.0`.
+The most recent tagged release is built and tested with Zig version `0.16.0`.
 
 ```
 zig fetch --save=lmdb \
-  https://github.com/nDimensional/zig-lmdb/archive/refs/tags/v0.3.2.tar.gz
+  https://github.com/nDimensional/zig-lmdb/archive/refs/tags/v0.4.0.tar.gz
 ```
 
 The `main` branch roughly tracks Zig nightly, which you can install via specific commit.
