@@ -10,12 +10,14 @@ const compare = @import("compare.zig");
 var gpa = std.heap.GeneralPurposeAllocator(.{}){};
 var allocator = gpa.allocator();
 
-var path_buffer: [std.fs.max_path_bytes]u8 = undefined;
+const io = std.testing.io;
 
-fn open(dir: std.fs.Dir, options: lmdb.Environment.Options) !lmdb.Environment {
-    const path = try dir.realpath(".", &path_buffer);
-    path_buffer[path.len] = 0;
-    return try lmdb.Environment.init(path_buffer[0..path.len :0], options);
+var path_buffer: [std.Io.Dir.max_path_bytes]u8 = undefined;
+
+fn open(dir: std.Io.Dir, options: lmdb.Environment.Options) !lmdb.Environment {
+    const len = try dir.realPath(io, &path_buffer);
+    path_buffer[len] = 0;
+    return try lmdb.Environment.init(path_buffer[0..len :0], options);
 }
 
 test "basic operations" {
@@ -105,11 +107,11 @@ test "compareEntries" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
 
-    try tmp.dir.makeDir("a");
-    try tmp.dir.makeDir("b");
+    try tmp.dir.createDir(io, "a", .default_dir);
+    try tmp.dir.createDir(io, "b", .default_dir);
 
-    var dir_a = try tmp.dir.openDir("a", .{});
-    defer dir_a.close();
+    var dir_a = try tmp.dir.openDir(io, "a", .{});
+    defer dir_a.close(io);
 
     const env_a = try open(dir_a, .{});
     defer env_a.deinit();
@@ -125,8 +127,8 @@ test "compareEntries" {
         try txn.commit();
     }
 
-    var dir_b = try tmp.dir.openDir("b", .{});
-    defer dir_b.close();
+    var dir_b = try tmp.dir.openDir(io, "b", .{});
+    defer dir_b.close(io);
 
     const env_b = try open(dir_b, .{});
     defer env_b.deinit();

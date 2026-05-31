@@ -13,43 +13,78 @@ const ms: f64 = 1_000_000.0;
 
 var stdout_buffer: [1024]u8 = undefined;
 
-pub fn main() !void {
-    var stdout = std.fs.File.stdout().writer(&stdout_buffer);
+pub fn main(init: std.process.Init) !void {
+    const io = init.io;
+
+    // The OS temp directory, e.g. `$TMPDIR` on macOS or `/tmp` on Linux.
+    const tmp_base = init.environ_map.get("TMPDIR") orelse "/tmp";
+
+    var stdout = std.Io.File.stdout().writer(io, &stdout_buffer);
 
     const log = &stdout.interface;
 
     _ = try log.write("## Benchmarks\n\n");
-    try Context.exec("1k entries", 1_000, log, .{});
+    try Context.exec(io, tmp_base, "1k entries", 1_000, log, .{});
     _ = try log.write("\n");
-    try Context.exec("50k entries", 50_000, log, .{});
+    try Context.exec(io, tmp_base, "50k entries", 50_000, log, .{});
     _ = try log.write("\n");
-    try Context.exec("1m entries", 1_000_000, log, .{ .map_size = 2 * 1024 * 1024 * 1024 });
+    try Context.exec(io, tmp_base, "1m entries", 1_000_000, log, .{ .map_size = 2 * 1024 * 1024 * 1024 });
 
     try log.flush();
 }
 
-var path_buffer: [std.fs.max_path_bytes]u8 = undefined;
+/// A uniquely-named temporary directory under the OS temp directory, deleted on
+/// `cleanup`. Owns its path string so it can be handed directly to LMDB, which
+/// takes a null-terminated path rather than an open directory handle.
+const TmpDir = struct {
+    buffer: [std.Io.Dir.max_path_bytes]u8,
+    len: usize,
 
-fn open(dir: std.fs.Dir, options: lmdb.Environment.Options) !lmdb.Environment {
-    const path = try dir.realpath(".", &path_buffer);
-    path_buffer[path.len] = 0;
-    return try lmdb.Environment.init(path_buffer[0..path.len :0], options);
-}
+    const random_bytes_count = 12;
+    const suffix_len = std.base64.url_safe.Encoder.calcSize(random_bytes_count);
+
+    fn init(io: std.Io, base: []const u8) !TmpDir {
+        var random_bytes: [random_bytes_count]u8 = undefined;
+        io.random(&random_bytes);
+        var suffix: [suffix_len]u8 = undefined;
+        _ = std.base64.url_safe.Encoder.encode(&suffix, &random_bytes);
+
+        var self: TmpDir = .{ .buffer = undefined, .len = 0 };
+        const dir_path = try std.fmt.bufPrintZ(&self.buffer, "{s}/zig-lmdb-bench-{s}", .{
+            std.mem.trimEnd(u8, base, "/"),
+            suffix,
+        });
+        self.len = dir_path.len;
+
+        try std.Io.Dir.cwd().createDirPath(io, dir_path);
+        return self;
+    }
+
+    fn path(self: *const TmpDir) [:0]const u8 {
+        return self.buffer[0..self.len :0];
+    }
+
+    fn cleanup(self: *TmpDir, io: std.Io) void {
+        std.Io.Dir.cwd().deleteTree(io, self.path()) catch {};
+        self.* = undefined;
+    }
+};
 
 const Context = struct {
+    io: std.Io,
     env: lmdb.Environment,
     name: []const u8,
     size: u32,
     log: *std.Io.Writer,
 
-    pub fn exec(name: []const u8, size: u32, log: *std.io.Writer, options: lmdb.Environment.Options) !void {
-        var tmp = std.testing.tmpDir(.{});
-        defer tmp.cleanup();
+    pub fn exec(io: std.Io, tmp_base: []const u8, name: []const u8, size: u32, log: *std.Io.Writer, options: lmdb.Environment.Options) !void {
+        var tmp = try TmpDir.init(io, tmp_base);
+        defer tmp.cleanup(io);
 
-        const env = try open(tmp.dir, options);
+        const env = try lmdb.Environment.init(tmp.path(), options);
         defer env.deinit();
 
-        const ctx = Context{ .env = env, .name = name, .size = size, .log = log };
+        const ctx = Context{ .io = io, .env = env, .name = name, .size = size, .log = log };
         try ctx.initialize();
         try ctx.printHeader();
 
@@ -94,11 +129,10 @@ const Context = struct {
 
     fn getRandomEntries(ctx: Context, comptime name: []const u8, comptime iterations: u32, comptime batch_size: usize) !void {
         var runtimes: [iterations]f64 = undefined;
-        var timer = try std.time.Timer.start();
 
         var operations: usize = 0;
         for (&runtimes) |*t| {
-            timer.reset();
+            const start = std.Io.Clock.Timestamp.now(ctx.io, .awake);
             operations += batch_size;
 
             const txn = try ctx.env.transaction(.{ .mode = .ReadOnly });
@@ -113,7 +147,7 @@ const Context = struct {
                 std.debug.assert(value.?.len == value_size);
             }
 
-            t.* = @as(f64, @floatFromInt(timer.read())) / ms;
+            t.* = @as(f64, @floatFromInt(start.untilNow(ctx.io).raw.nanoseconds)) / ms;
         }
 
         try ctx.printRow(name, &runtimes, operations);
@@ -121,11 +155,10 @@ const Context = struct {
 
     fn setRandomEntries(ctx: Context, comptime name: []const u8, comptime iterations: u32, comptime batch_size: usize) !void {
         var runtimes: [iterations]f64 = undefined;
-        var timer = try std.time.Timer.start();
 
         var operations: usize = 0;
         for (&runtimes, 0..) |*t, i| {
-            timer.reset();
+            const start = std.Io.Clock.Timestamp.now(ctx.io, .awake);
 
             const txn = try ctx.env.transaction(.{ .mode = .ReadWrite });
             errdefer txn.abort();
@@ -148,7 +181,7 @@ const Context = struct {
             try txn.commit();
             try ctx.env.sync();
 
-            t.* = @as(f64, @floatFromInt(timer.read())) / ms;
+            t.* = @as(f64, @floatFromInt(start.untilNow(ctx.io).raw.nanoseconds)) / ms;
             operations += batch_size;
         }
 
@@ -157,11 +190,10 @@ const Context = struct {
 
     fn iterateEntries(ctx: Context, comptime iterations: u32) !void {
         var runtimes: [iterations]f64 = undefined;
-        var timer = try std.time.Timer.start();
 
         var operations: usize = 0;
         for (&runtimes) |*t| {
-            timer.reset();
+            const start = std.Io.Clock.Timestamp.now(ctx.io, .awake);
             operations += ctx.size;
 
             const txn = try ctx.env.transaction(.{ .mode = .ReadOnly });
@@ -183,7 +215,7 @@ const Context = struct {
             }
 
             try ctx.env.sync();
-            t.* = @as(f64, @floatFromInt(timer.read())) / ms;
+            t.* = @as(f64, @floatFromInt(start.untilNow(ctx.io).raw.nanoseconds)) / ms;
         }
 
         try ctx.printRow("iterate over all entries", &runtimes, operations);

@@ -4,7 +4,10 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
     const target = b.standardTargetOptions(.{});
 
-    const lmdb = b.addModule("lmdb", .{ .root_source_file = b.path("src/lib.zig") });
+    const lmdb = b.addModule("lmdb", .{
+        .root_source_file = b.path("src/lib.zig"),
+        .link_libc = true,
+    });
     const lmdb_dep = b.dependency("lmdb", .{});
 
     lmdb.addIncludePath(lmdb_dep.path("libraries/liblmdb"));

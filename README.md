@@ -16,7 +16,7 @@ Zig bindings for LMDB.
 
 ## Installation
 
-The most recent tagged release is built and tested with Zig version `0.15.1`.
+Built and tested with Zig version `0.16.0`.
 
 ```
 zig fetch --save=lmdb \
