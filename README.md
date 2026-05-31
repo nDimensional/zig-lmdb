@@ -12,7 +12,6 @@ Zig bindings for LMDB.
   - [`Database`](#database)
   - [`Cursor`](#cursor)
   - [`Stat`](#stat)
-- [Benchmarks](#benchmarks)
 
 ## Installation
 
@@ -197,49 +196,3 @@ pub const Stat = struct {
     entries: usize,
 };
 ```
-
-## Benchmarks
-
-```
-zig build bench
-```
-
-## Benchmarks
-
-As recorded on an M3 MacBook Air:
-
-### 1k entries
-
-|                          | iterations | min (ms) | max (ms) | avg (ms) |    std | ops / s |
-| :----------------------- | ---------: | -------: | -------: | -------: | -----: | ------: |
-| get random 1 entry       |        100 |   0.0011 |   0.0315 |   0.0017 | 0.0030 |  599992 |
-| get random 100 entries   |        100 |   0.0545 |   0.1025 |   0.0905 | 0.0171 | 1104825 |
-| iterate over all entries |        100 |   0.1564 |   0.2440 |   0.1772 | 0.0134 | 5642318 |
-| set random 1 entry       |        100 |   0.0623 |   0.1711 |   0.0729 | 0.0182 |   13713 |
-| set random 100 entries   |        100 |   0.2892 |   0.3872 |   0.3133 | 0.0181 |  319201 |
-| set random 1k entries    |         10 |   2.2540 |   2.3905 |   2.3181 | 0.0485 |  431394 |
-| set random 50k entries   |         10 | 110.6715 | 113.6053 | 112.5423 | 0.8446 |  444277 |
-
-### 50k entries
-
-|                          | iterations | min (ms) | max (ms) | avg (ms) |    std | ops / s |
-| :----------------------- | ---------: | -------: | -------: | -------: | -----: | ------: |
-| get random 1 entry       |        100 |   0.0008 |   0.0270 |   0.0023 | 0.0026 |  435485 |
-| get random 100 entries   |        100 |   0.0679 |   0.1227 |   0.0746 | 0.0077 | 1339883 |
-| iterate over all entries |        100 |   5.6932 |   6.2481 |   5.9927 | 0.0832 | 8343507 |
-| set random 1 entry       |        100 |   0.0566 |   0.5343 |   0.0790 | 0.0574 |   12657 |
-| set random 100 entries   |        100 |   0.6045 |   0.9053 |   0.6917 | 0.0671 |  144577 |
-| set random 1k entries    |         10 |   2.9933 |   3.1644 |   3.0686 | 0.0447 |  325886 |
-| set random 50k entries   |         10 | 128.3916 | 131.6171 | 129.9763 | 0.9721 |  384686 |
-
-### 1m entries
-
-|                          | iterations | min (ms) | max (ms) | avg (ms) |    std | ops / s |
-| :----------------------- | ---------: | -------: | -------: | -------: | -----: | ------: |
-| get random 1 entry       |        100 |   0.0012 |   0.0208 |   0.0027 | 0.0018 |  367193 |
-| get random 100 entries   |        100 |   0.1050 |   0.2115 |   0.1282 | 0.0217 |  779952 |
-| iterate over all entries |        100 | 120.6643 | 124.6468 | 122.2648 | 0.7610 | 8178966 |
-| set random 1 entry       |        100 |   0.0670 |   0.4119 |   0.0890 | 0.0412 |   11232 |
-| set random 100 entries   |        100 |   1.0046 |   2.4578 |   2.0798 | 0.1833 |   48082 |
-| set random 1k entries    |         10 |   9.9543 |  14.9900 |  13.3877 | 1.7281 |   74696 |
-| set random 50k entries   |         10 | 177.7694 | 182.2383 | 180.3549 | 1.4246 |  277231 |
