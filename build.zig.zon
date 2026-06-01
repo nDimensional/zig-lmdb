@@ -2,12 +2,12 @@
     .name = .lmdb,
     .fingerprint = 0xb2966103a0733ae9,
     .paths = .{ "src", "build.zig", "build.zig.zon" },
-    .version = "0.4.0+0.9.31",
+    .version = "0.4.0+0.9.35",
     .minimum_zig_version = "0.16.0",
     .dependencies = .{
         .lmdb = .{
-            .url = "https://github.com/LMDB/lmdb/archive/refs/tags/LMDB_0.9.31.tar.gz",
-            .hash = "N-V-__8AAHEsCACb_b9D1HnCysDKIhKFOrITbxYh9JRh9ix5",
+            .url = "https://github.com/LMDB/lmdb/archive/refs/tags/LMDB_0.9.35.tar.gz",
+            .hash = "N-V-__8AAEVyCADP8PFZuyKz_iq-d6eg0lypXMEoZ5e-rb_8",
         },
     },
 }
