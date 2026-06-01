@@ -19,7 +19,7 @@ The most recent tagged release is built and tested with Zig version `0.16.0`.
 
 ```
 zig fetch --save=lmdb \
-  https://github.com/nDimensional/zig-lmdb/archive/refs/tags/v0.4.0.tar.gz
+  https://github.com/nDimensional/zig-lmdb/archive/refs/tags/v0.4.0+0.9.31.tar.gz
 ```
 
 The `main` branch roughly tracks Zig nightly, which you can install via specific commit.
