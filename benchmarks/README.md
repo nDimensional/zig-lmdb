@@ -4,7 +4,7 @@
 zig build bench
 ```
 
-The benchmark (built in `ReleaseFast`) runs against a single dataset size — 1000 entries by default — and reports four things:
+The benchmark (built with `-Ofast`) runs against a single dataset size — 1000 entries by default — and reports four things:
 
 - **Operation latency** — per-operation latency percentiles (p50/p90/p99/p99.9/max) for point lookups inside a long-lived read transaction, point lookups with a fresh transaction per op, and durable single-key commits. Percentiles, not mean ± stddev, because latency is heavily right-skewed and the tail is what matters. Each sample includes one system-clock read (~100–200ns), which sets the p50 floor for sub-microsecond reads — see the concurrency table for clock-free per-get throughput.
 - **Throughput** — full cursor scans, same-size overwrites (the cheap write path), and inserts of brand-new keys in ascending vs. random order. The ascending/random gap is the cost of B+tree page splits as a dataset grows.

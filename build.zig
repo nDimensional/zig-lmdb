@@ -63,10 +63,10 @@ pub fn build(b: *std.Build) void {
     { // Run benchmarks
 
         const bench_optimize = b.option(
-            std.builtin.OptimizeMode,
+            std.lang.Optimize,
             "bench-optimize",
-            "Optimize mode for `zig build bench` (default: ReleaseFast)",
-        ) orelse .ReleaseFast;
+            "Optimize mode for `zig build bench` (default: fast)",
+        ) orelse .fast;
         const bench_value_size = b.option(
             usize,
             "value-size",

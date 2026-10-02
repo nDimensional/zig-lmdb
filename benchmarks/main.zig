@@ -174,10 +174,10 @@ const TmpDir = struct {
         _ = std.base64.url_safe.Encoder.encode(&suffix, &random_bytes);
 
         var self: TmpDir = .{ .buffer = undefined, .len = 0 };
-        const dir_path = try std.fmt.bufPrintZ(&self.buffer, "{s}/zig-lmdb-bench-{s}", .{
+        const dir_path = try std.mem.printSentinel(&self.buffer, "{s}/zig-lmdb-bench-{s}", .{
             std.mem.trimEnd(u8, base, "/"),
             suffix,
-        });
+        }, 0);
         self.len = dir_path.len;
 
         try std.Io.Dir.cwd().createDirPath(io, dir_path);
